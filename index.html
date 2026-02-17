@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Antonio • 14-Day Recomp Dashboard</title>
+  <style>
+    :root { --bg:#0b0f14; --card:#121826; --muted:#a8b3cf; --text:#e9eefc; --accent:#6aa8ff; --ok:#58d68d; --warn:#f5c542; --line:#24314f; }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background:linear-gradient(180deg,#070a0f,#0b0f14); color:var(--text); }
+    .wrap{ max-width:1100px; margin:0 auto; padding:18px; }
+    header{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    h1{ font-size:20px; margin:0; letter-spacing:.2px; }
+    .sub{ color:var(--muted); font-size:13px; margin-top:4px; }
+    .row{ display:grid; grid-template-columns: 1.2fr .8fr; gap:14px; margin-top:14px; }
+    @media (max-width: 900px){ .row{ grid-template-columns:1fr; } }
+    .card{ background:rgba(18,24,38,.9); border:1px solid rgba(36,49,79,.7); border-radius:14px; padding:14px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    .card h2{ font-size:15px; margin:0 0 10px 0; }
+    .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+    .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:rgba(36,49,79,.5); border:1px solid rgba(36,49,79,.9); }
+    label{ font-size:12px; color:var(--muted); }
+    input, select, button, textarea{
+      background:#0d1320; border:1px solid rgba(36,49,79,.9); color:var(--text);
+      border-radius:10px; padding:8px 10px; font-size:14px; outline:none;
+    }
+    button{ cursor:pointer; }
+    button.primary{ background:rgba(106,168,255,.15); border-color:rgba(106,168,255,.6); }
+    button.ghost{ background:transparent; }
+    button:active{ transform:translateY(1px); }
+    .kpi{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .kpi .pill{ background:rgba(10,14,22,.7); }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:700px){ .grid2{ grid-template-columns:1fr; } }
+    .dayTitle{ display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge{ font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid rgba(36,49,79,.9); color:var(--muted); }
+    .badge.t{ border-color:rgba(106,168,255,.6); color:#cfe3ff; }
+    .badge.r{ border-color:rgba(245,197,66,.6); color:#ffe9a8; }
+    .badge.ar{ border-color:rgba(88,214,141,.6); color:#c8ffe0; }
+    .list{ margin:0; padding-left:18px; color:var(--text); }
+    .muted{ color:var(--muted); font-size:13px; }
+    .checklist{ display:grid; gap:8px; margin-top:10px; }
+    .check{ display:flex; gap:10px; align-items:flex-start; padding:10px; border-radius:12px; background:rgba(10,14,22,.55); border:1px solid rgba(36,49,79,.55); }
+    .check input{ margin-top:3px; }
+    .check .txt{ flex:1; }
+    a{ color:var(--accent); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+    .small{ font-size:12px; color:var(--muted); }
+    .hr{ height:1px; background:rgba(36,49,79,.7); margin:12px 0; border-radius:1px; }
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; }
+    .tab{ padding:8px 10px; border-radius:999px; border:1px solid rgba(36,49,79,.9); background:rgba(10,14,22,.5); }
+    .tab.active{ border-color:rgba(106,168,255,.6); background:rgba(106,168,255,.12); }
+    textarea{ width:100%; min-height:84px; resize:vertical; }
+    .footer{ margin-top:14px; color:var(--muted); font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Antonio • 14-Day Recomp Dashboard (Home)</h1>
+        <div class="sub">Meals + workouts + video links • saved locally in your browser</div>
+        <div class="kpi">
+          <div class="pill"><span class="small">Target</span><strong>~2,150–2,250 kcal</strong></div>
+          <div class="pill"><span class="small">Protein</span><strong>~180g/day</strong></div>
+          <div class="pill"><span class="small">Carbs</span><strong>↑ on Training</strong></div>
+          <div class="pill"><span class="small">Supps</span><strong>Omega-3 + Creatine</strong></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="pill">
+          <label for="startDate">Start date</label>
+          <input id="startDate" type="date" />
+        </div>
+        <div class="pill">
+          <label for="dayPick">Go to day</label>
+          <select id="dayPick"></select>
+        </div>
+        <button class="ghost" id="prevBtn">← Prev</button>
+        <button class="ghost" id="nextBtn">Next →</button>
+        <button class="primary" id="todayBtn">Today</button>
+      </div>
+    </header>
+
+    <div class="row">
+      <section class="card" id="dayCard">
+        <div class="dayTitle">
+          <div>
+            <h2 id="dayHeader">Day</h2>
+            <div class="muted" id="dayMeta"></div>
+          </div>
+          <div id="dayBadge" class="badge">—</div>
+        </div>
+
+        <div class="grid2" style="margin-top:10px;">
+          <div>
+            <h2>Meals</h2>
+            <ul class="list" id="mealsList"></ul>
+            <div class="hr"></div>
+            <h2>Checklist</h2>
+            <div class="checklist" id="checks"></div>
+          </div>
+
+          <div>
+            <h2>Workout / Activity</h2>
+            <div id="workoutSummary" class="muted"></div>
+            <div class="hr"></div>
+
+            <div class="tabs" id="workoutTabs"></div>
+
+            <div id="workoutDetail" style="margin-top:10px;"></div>
+
+            <div class="hr"></div>
+            <h2>Cardio (optional)</h2>
+            <ul class="list">
+              <li>Row: 20–30 min moderate <span class="muted">(2–3×/week)</span></li>
+              <li>Bike: 20–30 min steady <span class="muted">or</span> 10 rounds 30s hard / 60s easy</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2>Progress Tracker</h2>
+        <div class="muted">Log your metrics (saved locally).</div>
+        <div class="hr"></div>
+
+        <div class="grid2">
+          <div>
+            <label for="weight">Weight (lb)</label>
+            <input id="weight" type="number" step="0.1" placeholder="e.g., 186.0" />
+          </div>
+          <div>
+            <label for="waist">Waist (in)</label>
+            <input id="waist" type="number" step="0.1" placeholder="optional" />
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="notes">Notes</label>
+          <textarea id="notes" placeholder="Energy, sleep, pain, PRs, etc."></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+          <button class="primary" id="saveProgress">Save entry</button>
+          <button class="ghost" id="exportProgress">Export CSV</button>
+          <button class="ghost" id="resetAll" title="Clears local data">Reset</button>
+        </div>
+
+        <div class="hr"></div>
+        <h2>History</h2>
+        <div class="muted">Your saved entries (most recent first).</div>
+        <div style="margin-top:10px; overflow:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+            <tr>
+                <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Date</th>
+                <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Day</th>
+                <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Weight</th>
+                <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Waist</th>
+            </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+        </div>
+        <div class="footer" id="status"></div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+  // ---------- Data ----------
+  const workouts = {
+    "Upper A": {
+      focus: "Chest & Back",
+      list: [
+        { name: "Dumbbell Bench Press", sets: "4×8", link: "https://www.youtube.com/watch?v=VmB1G1K7v94" },
+        { name: "One-Arm Dumbbell Row", sets: "4×8/side", link: "https://www.youtube.com/watch?v=pYcpY20QaE8" },
+        { name: "Dumbbell Incline Press (home variation)", sets: "3×10", link: "https://www.youtube.com/watch?v=8iPEnn-ltC8" },
+        { name: "Push-Ups", sets: "3×12–15", link: "https://www.youtube.com/watch?v=IODxDxX7oi4" },
+        { name: "Dumbbell Lateral Raise", sets: "3×12–15", link: "https://www.youtube.com/watch?v=kDqklk1ZESo" },
+        { name: "Plank", sets: "3×45s", link: "https://www.youtube.com/watch?v=pSHjTRCQxIw" },
+      ],
+    },
+    "Lower A": {
+      focus: "Quads & Posterior Chain",
+      list: [
+        { name: "Goblet Squat", sets: "4×8", link: "https://www.youtube.com/watch?v=MeIiIdhvXT4" },
+        { name: "Dumbbell Romanian Deadlift", sets: "3×10", link: "https://www.youtube.com/watch?v=JLVrIPnmm5A" },
+        { name: "Walking Lunges", sets: "3×10/leg", link: "https://www.youtube.com/watch?v=wrwwXE_x-pQ" },
+        { name: "Glute Bridge (weighted optional)", sets: "3×12", link: "https://www.youtube.com/watch?v=m2Zx-57cSok" },
+        { name: "Side Plank", sets: "3×30s/side", link: "https://www.youtube.com/watch?v=K2VljzCC16g" },
+      ],
+    },
+    "Upper B": {
+      focus: "Shoulders & Arms",
+      list: [
+        { name: "Dumbbell Overhead Press", sets: "4×8", link: "https://www.youtube.com/watch?v=B-aVuyhvLHU" },
+        { name: "Bent-Over Dumbbell Row", sets: "4×8", link: "https://www.youtube.com/watch?v=roCP6wCXPqo" },
+        { name: "Dumbbell Floor Press", sets: "3×10", link: "https://www.youtube.com/watch?v=t1bUjzg4YwI" },
+        { name: "Front + Lateral Raises (alternate)", sets: "3×12–15", link: "https://www.youtube.com/watch?v=kDqklk1ZESo" },
+        { name: "Bicep Curls", sets: "3×12", link: "https://www.youtube.com/watch?v=ykJmrZ5v0Oo" },
+        { name: "Overhead DB Triceps Extension", sets: "3×12", link: "https://www.youtube.com/watch?v=_gsUck-7M74" },
+      ],
+    },
+    "Lower B": {
+      focus: "Posterior & Glutes",
+      list: [
+        { name: "Dumbbell Deadlift", sets: "4×6–8", link: "https://www.youtube.com/watch?v=6TSP1TRMUzs" },
+        { name: "Bulgarian Split Squat", sets: "3×8/leg", link: "https://www.youtube.com/watch?v=2C-uNgKwPLE" },
+        { name: "Hip Thrust (weighted optional)", sets: "3×12", link: "https://www.youtube.com/watch?v=SEdqd1n0cvg" },
+        { name: "Calf Raises", sets: "3×15–20", link: "https://www.youtube.com/watch?v=YMmgqO8Jo-k" },
+        { name: "Plank Shoulder Taps", sets: "3×30–45s", link: "https://www.youtube.com/watch?v=gbyM0bQ2Cys" },
+      ],
+    }
+  };
+
+  
+
+  // 14-day plan (meals + workout tag)
+  const plan = [
+    { day: 1, tag: "T", workout: "Upper A", meals: [
+      "Breakfast: 3 eggs, ½ avocado, toast, berries",
+      "Lunch: Chicken salad + sweet potato",
+      "Snack: Greek yogurt + walnuts",
+      "Dinner: Steak + vegetables + small potato"
+    ]},
+    { day: 2, tag: "R", workout: "Rest / Walk", meals: [
+      "Breakfast: Greek yogurt, blueberries, chia, almonds",
+      "Lunch: Turkey lettuce wraps + cucumber/tomato",
+      "Snack: Protein shake + apple",
+      "Dinner: Chicken thighs + broccoli + cauliflower mash"
+    ]},
+    { day: 3, tag: "T", workout: "Lower A", meals: [
+      "Breakfast: Protein smoothie (whey, banana, spinach, almond milk, PB)",
+      "Lunch: Ground beef + rice + vegetables",
+      "Snack: Cottage cheese + pineapple",
+      "Dinner: Pork tenderloin + asparagus + potatoes"
+    ]},
+    { day: 4, tag: "R", workout: "Rest / Walk", meals: [
+      "Breakfast: Eggs + spinach + avocado",
+      "Lunch: Chicken salad + almonds",
+      "Snack: 2 hard-boiled eggs",
+      "Dinner: Ground turkey + zucchini noodles + tomato sauce"
+    ]},
+    { day: 5, tag: "T", workout: "Upper B", meals: [
+      "Breakfast: (repeat Day 1) eggs + avocado + toast + berries",
+      "Lunch: Chicken salad + sweet potato",
+      "Snack: Greek yogurt + walnuts",
+      "Dinner: Steak + vegetables + small potato"
+    ]},
+    { day: 6, tag: "AR", workout: "Lower B", meals: [
+      "Breakfast: (repeat Day 3) protein smoothie",
+      "Lunch: Ground beef + rice + vegetables",
+      "Snack: Cottage cheese + pineapple",
+      "Dinner: Pork tenderloin + asparagus + potatoes"
+    ]},
+    { day: 7, tag: "R", workout: "Rest / Mobility", meals: [
+      "Breakfast: Eggs + avocado",
+      "Lunch: Chicken salad (olive oil)",
+      "Snack: Greek yogurt",
+      "Dinner: Steak + vegetables (lower carb)"
+    ]},
+
+    { day: 8, tag: "T", workout: "Upper A", meals: [
+      "Breakfast: Eggs + berries",
+      "Lunch: Chicken + quinoa (½ cup) + vegetables",
+      "Snack: Protein shake",
+      "Dinner: Steak + vegetables"
+    ]},
+    { day: 9, tag: "R", workout: "Rest / Walk", meals: [
+      "Breakfast: Greek yogurt + nuts",
+      "Lunch: Turkey burger (no bun) + sweet potato",
+      "Snack: Cottage cheese",
+      "Dinner: Chicken thighs + broccoli"
+    ]},
+    { day: 10, tag: "T", workout: "Lower A", meals: [
+      "Breakfast: Protein smoothie",
+      "Lunch: Ground beef + rice + vegetables",
+      "Snack: 2 hard-boiled eggs",
+      "Dinner: Pork + vegetables"
+    ]},
+    { day: 11, tag: "R", workout: "Rest / Walk", meals: [
+      "Breakfast: Eggs + avocado",
+      "Lunch: Chicken salad",
+      "Snack: Protein shake",
+      "Dinner: Ground turkey + roasted carrots"
+    ]},
+    { day: 12, tag: "T", workout: "Upper B", meals: [
+      "Breakfast: (repeat Day 8) eggs + berries",
+      "Lunch: Chicken + quinoa + vegetables",
+      "Snack: Protein shake",
+      "Dinner: Steak + vegetables"
+    ]},
+    { day: 13, tag: "R", workout: "Rest / Walk", meals: [
+      "Breakfast: (repeat Day 9) greek yogurt + nuts",
+      "Lunch: Turkey burger + sweet potato",
+      "Snack: Cottage cheese",
+      "Dinner: Chicken thighs + broccoli"
+    ]},
+    { day: 14, tag: "R", workout: "Rest / Mobility", meals: [
+      "Breakfast: Eggs + spinach + avocado",
+      "Lunch: Chicken salad",
+      "Snack: Greek yogurt",
+      "Dinner: Steak + vegetables (lower carb)"
+    ]},
+  ];
+
+  const badgeMap = {
+    "T": { cls: "t", text: "Training day" },
+    "R": { cls: "r", text: "Rest day" },
+    "AR": { cls: "ar", text: "Active recovery" },
+  };
+
+  // ---------- State / Storage ----------
+  const LS = {
+    start: "antonio_startDate_v1",
+    checks: "antonio_checks_v1",
+    progress: "antonio_progress_v1"
+  };
+
+  function $(id){ return document.getElementById(id); }
+  function setStatus(msg){ $("status").textContent = msg; setTimeout(()=>{$("status").textContent="";}, 2500); }
+
+  function getStartDate(){
+    const v = localStorage.getItem(LS.start);
+    return v ? new Date(v + "T00:00:00") : null;
+  }
+  function setStartDate(dateStr){
+    localStorage.setItem(LS.start, dateStr);
+  }
+
+  function daysBetween(d1, d2){
+    const ms = 24*60*60*1000;
+    return Math.floor((d2 - d1) / ms);
+  }
+
+  function loadChecks(){
+    try{ return JSON.parse(localStorage.getItem(LS.checks) || "{}"); } catch(e){ return {}; }
+  }
+  function saveChecks(obj){
+    localStorage.setItem(LS.checks, JSON.stringify(obj));
+  }
+
+  function loadProgress(){
+    try{ return JSON.parse(localStorage.getItem(LS.progress) || "[]"); } catch(e){ return []; }
+  }
+  function saveProgress(arr){
+    localStorage.setItem(LS.progress, JSON.stringify(arr));
+  }
+
+  // ---------- UI ----------
+  let currentDayIndex = 0;
+
+  function initDayPicker(){
+    const sel = $("dayPick");
+    sel.innerHTML = "";
+    plan.forEach((p, idx)=>{
+      const opt = document.createElement("option");
+      opt.value = idx;
+      opt.textContent = `Day ${p.day}`;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener("change", ()=> {
+      currentDayIndex = parseInt(sel.value,10);
+      renderDay();
+    });
+  }
+
+  function computeTodayIndex(){
+    const start = getStartDate();
+    if(!start) return 0;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diff = daysBetween(start, today);
+    if(diff < 0) return 0;
+    if(diff > 13) return 13;
+    return diff;
+  }
+
+  function renderWorkoutTabs(activeName){
+    const tabs = $("workoutTabs");
+    tabs.innerHTML = "";
+    ["Upper A","Lower A","Upper B","Lower B"].forEach(name=>{
+      const b = document.createElement("button");
+      b.className = "tab" + (name===activeName ? " active" : "");
+      b.textContent = name;
+      b.addEventListener("click", ()=>{
+        renderWorkoutDetail(name);
+        [...tabs.children].forEach(x=>x.classList.remove("active"));
+        b.classList.add("active");
+      });
+      tabs.appendChild(b);
+    });
+  }
+
+  function renderWorkoutDetail(name){
+    const w = workouts[name];
+    const el = $("workoutDetail");
+    if(!w){ el.innerHTML = `<div class="muted">Rest day. Optional walk/row/bike.</div>`; return; }
+
+    const items = w.list.map(ex=>(
+      `<li><strong>${ex.name}</strong> — ${ex.sets} • <a href="${ex.link}" target="_blank" rel="noreferrer">video</a></li>`
+    )).join("");
+
+    el.innerHTML = `
+      <div class="badge ${name.includes("Upper")?"t":"ar"}" style="display:inline-block;">${name} • ${w.focus}</div>
+      <div class="hr"></div>
+      <ul class="list">${items}</ul>
+      <div class="hr"></div>
+      <div class="muted">
+        <strong>Progression:</strong> when you hit the top end of reps with good form, increase dumbbell weight next session.
+        If you can’t add weight, add 1 rep per set until you can.
+      </div>
+    `;
+  }
+
+  function renderDay(){
+    const p = plan[currentDayIndex];
+    $("dayPick").value = String(currentDayIndex);
+
+    $("dayHeader").textContent = `Day ${p.day}`;
+    const start = getStartDate();
+    const dateStr = start ? new Date(start.getTime() + (p.day-1)*24*60*60*1000).toLocaleDateString() : "Set a start date";
+    $("dayMeta").textContent = `Date: ${dateStr} • Focus: ${p.workout}`;
+
+    const badge = badgeMap[p.tag];
+    const b = $("dayBadge");
+    b.className = `badge ${badge.cls}`;
+    b.textContent = badge.text;
+
+    // Meals
+    const ul = $("mealsList");
+    ul.innerHTML = p.meals.map(m=>`<li>${m}</li>`).join("");
+
+    // Workout summary + tabs/detail
+    const ws = $("workoutSummary");
+    if(workouts[p.workout]){
+      ws.innerHTML = `<strong>${p.workout}</strong> — ${workouts[p.workout].focus} • <span class="muted">45–60 min</span>`;
+      renderWorkoutTabs(p.workout);
+      renderWorkoutDetail(p.workout);
+      // mark selected tab
+      [...$("workoutTabs").children].forEach(btn=>{
+        if(btn.textContent === p.workout) btn.classList.add("active");
+      });
+    } else {
+      ws.innerHTML = `<strong>${p.workout}</strong> • Optional walk/row/bike`;
+      renderWorkoutTabs("Upper A");
+      renderWorkoutDetail(null);
+      [...$("workoutTabs").children].forEach(btn=>btn.classList.remove("active"));
+    }
+
+    // Checklist: meals + workout
+    const checks = loadChecks();
+    const keyBase = `day${p.day}`;
+    const items = [
+      { id: `${keyBase}_breakfast`, label: "Breakfast complete" },
+      { id: `${keyBase}_lunch`, label: "Lunch complete" },
+      { id: `${keyBase}_snack`, label: "Snack complete" },
+      { id: `${keyBase}_dinner`, label: "Dinner complete" },
+      { id: `${keyBase}_water`, label: "Water + electrolytes" },
+      { id: `${keyBase}_supps`, label: "Omega-3 + Creatine" },
+      { id: `${keyBase}_workout`, label: (workouts[p.workout] ? `${p.workout} workout done` : "Movement / walk / mobility") },
+    ];
+
+    const box = $("checks");
+    box.innerHTML = "";
+    items.forEach(it=>{
+      const row = document.createElement("div");
+      row.className = "check";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = !!checks[it.id];
+      cb.addEventListener("change", ()=>{
+        const c = loadChecks();
+        c[it.id] = cb.checked;
+        saveChecks(c);
+      });
+      const txt = document.createElement("div");
+      txt.className = "txt";
+      txt.innerHTML = `<div>${it.label}</div><div class="small">${p.tag==="T" ? "Training day carbs OK" : "Lower carbs / keep protein high"}</div>`;
+      row.appendChild(cb);
+      row.appendChild(txt);
+      box.appendChild(row);
+    });
+  }
+
+  function initStartDate(){
+    const input = $("startDate");
+    const stored = localStorage.getItem(LS.start);
+    if(stored) input.value = stored;
+    input.addEventListener("change", ()=>{
+      if(input.value){
+        setStartDate(input.value);
+        currentDayIndex = computeTodayIndex();
+        renderDay();
+        setStatus("Start date saved.");
+      }
+    });
+  }
+
+  function saveProgressEntry(){
+    const weight = $("weight").value ? parseFloat($("weight").value) : "";
+    const waist = $("waist").value ? parseFloat($("waist").value) : "";
+    const notes = $("notes").value || "";
+    if (weight === "" && waist === "" && notes.trim() === "") {
+      setStatus("Add weight, waist, or notes first.");
+      return;
+    }
+    const p = plan[currentDayIndex];
+    const start = getStartDate();
+    const date = start ? new Date(start.getTime() + (p.day-1)*24*60*60*1000).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+
+    const arr = loadProgress();
+    arr.push({ date, day: p.day, weight, waist, notes });
+    saveProgress(arr);
+
+    $("notes").value = "";
+    setStatus("Progress saved.");
+    renderHistory();
+  }
+
+  function exportProgressCSV(){
+    const arr = loadProgress();
+    const header = ["date","day","weight_lb","waist_in","notes"];
+    const rows = arr.map(x=>[
+      x.date, x.day, x.weight ?? "", x.waist ?? "", (x.notes||"").replaceAll('"','""')
+    ]);
+    const csv = [header.join(","), ...rows.map(r=>`${r[0]},${r[1]},${r[2]},${r[3]},"${r[4]}"`)].join("\n");
+
+    const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "antonio_progress.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function renderHistory(){
+    const body = $("historyBody");
+    if(!body) return;
+
+    const arr = loadProgress().slice().reverse(); // most recent first
+    if(arr.length === 0){
+      body.innerHTML = `<tr><td colspan="4" style="padding:10px; color:var(--muted);">No entries yet. Use “Save entry” to start tracking.</td></tr>`;
+      return;
+    }
+
+    const rows = arr.slice(0, 30).map(x=>{
+      const w = (x.weight === "" || x.weight == null) ? "" : `${x.weight} lb`;
+      const wa = (x.waist === "" || x.waist == null) ? "" : `${x.waist} in`;
+      return `
+        <tr>
+            <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${x.date}</td>
+            <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${x.day}</td>
+            <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${w}</td>
+            <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${wa}</td>
+        </tr>
+      `;
+    }).join("");
+
+    body.innerHTML = rows;
+  }
+
+
+  function resetAll(){
+    if(!confirm("This clears your saved checklists, progress, and start date. Continue?")) return;
+    localStorage.removeItem(LS.start);
+    localStorage.removeItem(LS.checks);
+    localStorage.removeItem(LS.progress);
+    $("startDate").value = "";
+    currentDayIndex = 0;
+    renderDay();
+    setStatus("Reset complete.");
+    renderHistory();
+  }
+
+  // ---------- Init ----------
+  initDayPicker();
+  initStartDate();
+
+  $("prevBtn").addEventListener("click", ()=>{ currentDayIndex = Math.max(0, currentDayIndex-1); renderDay(); });
+  $("nextBtn").addEventListener("click", ()=>{ currentDayIndex = Math.min(13, currentDayIndex+1); renderDay(); });
+  $("todayBtn").addEventListener("click", ()=>{ currentDayIndex = computeTodayIndex(); renderDay(); });
+
+  $("saveProgress").addEventListener("click", saveProgressEntry);
+  $("exportProgress").addEventListener("click", exportProgressCSV);
+  $("resetAll").addEventListener("click", resetAll);
+
+  // Default to today's day if start date is set; otherwise Day 1
+  currentDayIndex = computeTodayIndex();
+  renderDay();
+  renderHistory();
+</script>
+</body>
+</html>
