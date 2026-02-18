@@ -30,8 +30,29 @@
     return { entries: arr, replaced: false };
   }
 
+  function validateProgressInput(weight, waist, notes) {
+    const hasWeight = weight !== "" && weight != null;
+    const hasWaist = waist !== "" && waist != null;
+    const hasNotes = !!String(notes || "").trim();
+
+    if (!hasWeight && !hasWaist && !hasNotes) {
+      return { ok: false, message: "Add weight, waist, or notes first." };
+    }
+
+    if (hasWeight && (Number.isNaN(weight) || weight < 60 || weight > 600)) {
+      return { ok: false, message: "Weight looks out of range (60-600 lb)." };
+    }
+
+    if (hasWaist && (Number.isNaN(waist) || waist < 15 || waist > 100)) {
+      return { ok: false, message: "Waist looks out of range (15-100 in)." };
+    }
+
+    return { ok: true, message: "" };
+  }
+
   return {
     entryDateForPlanDay,
     upsertProgressEntry,
+    validateProgressInput,
   };
 });
