@@ -180,22 +180,14 @@
   }
 
   function loadChecks() {
-    try {
-      return JSON.parse(localStorage.getItem(LS.checks) || "{}");
-    } catch (e) {
-      return {};
-    }
+    return core.parseStoredChecks(localStorage.getItem(LS.checks));
   }
   function saveChecks(obj) {
     localStorage.setItem(LS.checks, JSON.stringify(obj));
   }
 
   function loadProgress() {
-    try {
-      return JSON.parse(localStorage.getItem(LS.progress) || "[]");
-    } catch (e) {
-      return [];
-    }
+    return core.parseStoredProgress(localStorage.getItem(LS.progress));
   }
   function saveProgress(arr) {
     localStorage.setItem(LS.progress, JSON.stringify(arr));
