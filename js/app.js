@@ -413,13 +413,39 @@
     URL.revokeObjectURL(url);
   }
 
+  function deleteLatestEntry() {
+    const removed = core.removeLatestProgressEntry(loadProgress());
+    if (!removed.removed) {
+      setStatus("No entry to delete.");
+      return;
+    }
+
+    saveProgress(removed.entries);
+    setStatus("Latest entry deleted.");
+    renderHistory();
+    renderCharts();
+  }
+
+  function deleteProgressEntryByKey(date, day) {
+    const removed = core.removeProgressEntryByDateDay(loadProgress(), date, day);
+    if (!removed.removed) {
+      setStatus("Entry not found.");
+      return;
+    }
+
+    saveProgress(removed.entries);
+    setStatus("Entry deleted.");
+    renderHistory();
+    renderCharts();
+  }
+
   function renderHistory() {
     const body = $("historyBody");
     if (!body) return;
 
     const arr = loadProgress().slice().reverse(); // most recent first
     if (arr.length === 0) {
-      body.innerHTML = `<tr><td colspan="4" style="padding:10px; color:var(--muted);">No entries yet. Use “Save entry” to start tracking.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="5" style="padding:10px; color:var(--muted);">No entries yet. Use “Save entry” to start tracking.</td></tr>`;
       return;
     }
 
@@ -432,11 +458,20 @@
             <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${x.day}</td>
             <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${w}</td>
             <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${wa}</td>
+            <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">
+              <button class="ghost delete-row-btn" data-date="${x.date}" data-day="${x.day}">Delete</button>
+            </td>
         </tr>
       `;
     }).join("");
 
     body.innerHTML = rows;
+    body.querySelectorAll(".delete-row-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const day = parseInt(btn.getAttribute("data-day"), 10);
+        deleteProgressEntryByKey(btn.getAttribute("data-date"), day);
+      });
+    });
   }
 
   let weightChart = null;
@@ -541,6 +576,7 @@
 
   $("saveProgress").addEventListener("click", saveProgressEntry);
   $("exportProgress").addEventListener("click", exportProgressCSV);
+  $("deleteLatest").addEventListener("click", deleteLatestEntry);
   $("resetAll").addEventListener("click", resetAll);
 
   // Default to today's day if start date is set; otherwise Day 1

@@ -50,9 +50,32 @@
     return { ok: true, message: "" };
   }
 
+  function removeLatestProgressEntry(entries) {
+    const arr = Array.isArray(entries) ? entries.slice() : [];
+    if (arr.length === 0) {
+      return { entries: arr, removed: null };
+    }
+
+    const removed = arr[arr.length - 1];
+    return { entries: arr.slice(0, -1), removed };
+  }
+
+  function removeProgressEntryByDateDay(entries, date, day) {
+    const arr = Array.isArray(entries) ? entries.slice() : [];
+    const idx = arr.findIndex((item) => item && item.date === date && item.day === day);
+    if (idx < 0) {
+      return { entries: arr, removed: false };
+    }
+
+    arr.splice(idx, 1);
+    return { entries: arr, removed: true };
+  }
+
   return {
     entryDateForPlanDay,
     upsertProgressEntry,
     validateProgressInput,
+    removeLatestProgressEntry,
+    removeProgressEntryByDateDay,
   };
 });
