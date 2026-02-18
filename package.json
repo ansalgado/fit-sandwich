@@ -1,0 +1,9 @@
+{
+  "name": "fit-sandwich",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "verify": "node --check js/core.js && node --check js/app.js && npm test"
+  }
+}

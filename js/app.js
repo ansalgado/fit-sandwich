@@ -3,6 +3,11 @@
 
 // Immediately Invoked Function Expression (IIFE) to avoid polluting the global scope
 (() => {
+  const core = window.FitSandwichCore;
+  if (!core) {
+    throw new Error("FitSandwichCore is required before loading app.js");
+  }
+
   // ---------- Data ----------
   const workouts = {
     "Upper A": {
@@ -370,17 +375,15 @@
       return;
     }
     const p = plan[currentDayIndex];
-    const start = getStartDate();
-    const date = start
-      ? new Date(start.getTime() + (p.day - 1) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
+    const date = core.entryDateForPlanDay(localStorage.getItem(LS.start), p.day, new Date());
 
     const arr = loadProgress();
-    arr.push({ date, day: p.day, weight, waist, notes });
-    saveProgress(arr);
+    const next = { date, day: p.day, weight, waist, notes };
+    const upsert = core.upsertProgressEntry(arr, next);
+    saveProgress(upsert.entries);
 
     $("notes").value = "";
-    setStatus("Progress saved.");
+    setStatus(upsert.replaced ? "Progress updated." : "Progress saved.");
     renderHistory();
     renderCharts();
   }
