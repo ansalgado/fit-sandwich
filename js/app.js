@@ -370,8 +370,10 @@
     const weight = $("weight").value ? parseFloat($("weight").value) : "";
     const waist = $("waist").value ? parseFloat($("waist").value) : "";
     const notes = $("notes").value || "";
-    if (weight === "" && waist === "" && notes.trim() === "") {
-      setStatus("Add weight, waist, or notes first.");
+
+    const validation = core.validateProgressInput(weight, waist, notes);
+    if (!validation.ok) {
+      setStatus(validation.message);
       return;
     }
     const p = plan[currentDayIndex];
