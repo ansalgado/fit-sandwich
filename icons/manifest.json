@@ -1,6 +1,6 @@
 {
-  "name": "Fatty McFatFace",
-  "short_name": "Fatty McFatFace",
+  "name": "Fit Sandwich",
+  "short_name": "Fit Sandwich",
   "start_url": "../index.html",
   "scope": "../",
   "display": "standalone",

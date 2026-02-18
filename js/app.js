@@ -1,4 +1,4 @@
-// JavaScript for Fatty McFatFace • Recomp Dashboard
+// JavaScript for Fit Sandwich • Recomp Dashboard
 // Extracted from inline script and moved into a standalone module.
 
 // Immediately Invoked Function Expression (IIFE) to avoid polluting the global scope
