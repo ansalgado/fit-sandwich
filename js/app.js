@@ -3,6 +3,11 @@
 
 // Immediately Invoked Function Expression (IIFE) to avoid polluting the global scope
 (() => {
+  const core = window.FitSandwichCore;
+  if (!core) {
+    throw new Error("FitSandwichCore is required before loading app.js");
+  }
+
   // ---------- Data ----------
   const workouts = {
     "Upper A": {
@@ -175,22 +180,14 @@
   }
 
   function loadChecks() {
-    try {
-      return JSON.parse(localStorage.getItem(LS.checks) || "{}");
-    } catch (e) {
-      return {};
-    }
+    return core.parseStoredChecks(localStorage.getItem(LS.checks));
   }
   function saveChecks(obj) {
     localStorage.setItem(LS.checks, JSON.stringify(obj));
   }
 
   function loadProgress() {
-    try {
-      return JSON.parse(localStorage.getItem(LS.progress) || "[]");
-    } catch (e) {
-      return [];
-    }
+    return core.parseStoredProgress(localStorage.getItem(LS.progress));
   }
   function saveProgress(arr) {
     localStorage.setItem(LS.progress, JSON.stringify(arr));
@@ -365,22 +362,22 @@
     const weight = $("weight").value ? parseFloat($("weight").value) : "";
     const waist = $("waist").value ? parseFloat($("waist").value) : "";
     const notes = $("notes").value || "";
-    if (weight === "" && waist === "" && notes.trim() === "") {
-      setStatus("Add weight, waist, or notes first.");
+
+    const validation = core.validateProgressInput(weight, waist, notes);
+    if (!validation.ok) {
+      setStatus(validation.message);
       return;
     }
     const p = plan[currentDayIndex];
-    const start = getStartDate();
-    const date = start
-      ? new Date(start.getTime() + (p.day - 1) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
+    const date = core.entryDateForPlanDay(localStorage.getItem(LS.start), p.day, new Date());
 
     const arr = loadProgress();
-    arr.push({ date, day: p.day, weight, waist, notes });
-    saveProgress(arr);
+    const next = { date, day: p.day, weight, waist, notes };
+    const upsert = core.upsertProgressEntry(arr, next);
+    saveProgress(upsert.entries);
 
     $("notes").value = "";
-    setStatus("Progress saved.");
+    setStatus(upsert.replaced ? "Progress updated." : "Progress saved.");
     renderHistory();
     renderCharts();
   }
@@ -408,13 +405,39 @@
     URL.revokeObjectURL(url);
   }
 
+  function deleteLatestEntry() {
+    const removed = core.removeLatestProgressEntry(loadProgress());
+    if (!removed.removed) {
+      setStatus("No entry to delete.");
+      return;
+    }
+
+    saveProgress(removed.entries);
+    setStatus("Latest entry deleted.");
+    renderHistory();
+    renderCharts();
+  }
+
+  function deleteProgressEntryByKey(date, day) {
+    const removed = core.removeProgressEntryByDateDay(loadProgress(), date, day);
+    if (!removed.removed) {
+      setStatus("Entry not found.");
+      return;
+    }
+
+    saveProgress(removed.entries);
+    setStatus("Entry deleted.");
+    renderHistory();
+    renderCharts();
+  }
+
   function renderHistory() {
     const body = $("historyBody");
     if (!body) return;
 
     const arr = loadProgress().slice().reverse(); // most recent first
     if (arr.length === 0) {
-      body.innerHTML = `<tr><td colspan="4" style="padding:10px; color:var(--muted);">No entries yet. Use “Save entry” to start tracking.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="5" style="padding:10px; color:var(--muted);">No entries yet. Use “Save entry” to start tracking.</td></tr>`;
       return;
     }
 
@@ -427,11 +450,20 @@
             <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${x.day}</td>
             <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${w}</td>
             <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">${wa}</td>
+            <td style="padding:8px; border-bottom:1px solid rgba(36,49,79,.35);">
+              <button class="ghost delete-row-btn" data-date="${x.date}" data-day="${x.day}">Delete</button>
+            </td>
         </tr>
       `;
     }).join("");
 
     body.innerHTML = rows;
+    body.querySelectorAll(".delete-row-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const day = parseInt(btn.getAttribute("data-day"), 10);
+        deleteProgressEntryByKey(btn.getAttribute("data-date"), day);
+      });
+    });
   }
 
   let weightChart = null;
@@ -536,6 +568,7 @@
 
   $("saveProgress").addEventListener("click", saveProgressEntry);
   $("exportProgress").addEventListener("click", exportProgressCSV);
+  $("deleteLatest").addEventListener("click", deleteLatestEntry);
   $("resetAll").addEventListener("click", resetAll);
 
   // Default to today's day if start date is set; otherwise Day 1

@@ -107,6 +107,7 @@
         <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
           <button class="primary" id="saveProgress">Save entry</button>
           <button class="ghost" id="exportProgress">Export CSV</button>
+          <button class="ghost" id="deleteLatest">Delete latest</button>
           <button class="ghost" id="resetAll" title="Clears local data">Reset</button>
         </div>
 
@@ -121,6 +122,7 @@
                   <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Day</th>
                   <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Weight</th>
                   <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Waist</th>
+                  <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(36,49,79,.7);">Actions</th>
               </tr>
             </thead>
             <tbody id="historyBody"></tbody>
@@ -142,6 +144,8 @@
     </div>
   </div>
 
+  <!-- Shared utility helpers -->
+  <script src="js/core.js"></script>
   <!-- External script for dashboard logic -->
   <script src="js/app.js"></script>
 </body>
